@@ -42,18 +42,37 @@ export default function QuestionsList({
   }, [query]);
 
   async function submit() {
-    if (!draft.trim()) return;
+  alert("submit called");
 
-    const res = await fetch("/api/questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: draft }),
-    });
-    const created = await res.json();
+  if (!draft.trim()) return;
 
-    setQuestions((qs) => [{ ...created, votes: 0 }, ...qs]);
-    setDraft("");
-  }
+  const res = await fetch("/api/questions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body: draft }),
+  });
+
+  console.log("Status:", res.status);
+
+  const created = await res.json();
+  console.log("Response:", created);
+
+  setDraft("");
+  await loadQuestions();
+}
+
+
+  async function loadQuestions() {
+  const url = query
+    ? `/api/questions?q=${encodeURIComponent(query)}`
+    : `/api/questions`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  setQuestions(data.questions);
+  setHasMore(data.hasMore);
+}
 
   async function upvote(id: string) {
     // optimistic: assume success, update the UI now
